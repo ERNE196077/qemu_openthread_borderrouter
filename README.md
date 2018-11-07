@@ -10,14 +10,25 @@ Adjust the below commands to the OS you are using. In this case I'm using Arch L
 Install some dependencies:
 ```
 sudo pacman -Syy
-sudo trizen -S libcurses5-compat
-sudo trizen -S arm-linux-
+trizen -S ncurses5-compat-libs
 ```
-
-
+I installed these AUR packages but I'm almost sure that arm-linux-gnueabihf-gcc should be enough:
 ```
+trizen -S arm-linux-gnueabihf-binutils
+trizen -S arm-linux-gnueabihf-gcc
+trizen -S arm-linux-gnueabihf-glibc
+trizen -S arm-linux-gnueabihf-linux-api-headers
 ```
+Clone the Raspberry kernel tree:
 ```
+git clone git://github.com/raspberrypi/linux.git
+```
+For the next step I used the linux-arm-4.14.50.patch from dhruvvyas90, due changes in the files from the kernel tree the patch failed to be applied in my case so I opened the files and did the changes manually (Just 3 files...). 
+Please refer to the patch file to apply the changes. It just be needed to be done just once. [linux-arm-4.14.50.patch](https://github.com/dhruvvyas90/qemu-rpi-kernel/blob/master/tools/linux-arm-4.14.50.patch)
+```
+nano linux/arch/arm/Kconfig
+nano linux/arch/arm/mach-versatile/Kconfig
+nano linux/drivers/mmc/host/Kconfig
 ```
 ```
 ```
