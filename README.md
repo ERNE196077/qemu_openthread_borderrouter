@@ -146,6 +146,11 @@ DNS64=0
 DHCPV6_PD=0
 NETWORK_MANAGER=0
 ```
+Before building we need more RAM... the 256 MB assigned are not enough, for this reason we setup a SWAP file:
+```
+sudo su -c 'echo "CONF_SWAPSIZE=512" > /etc/dphys-swapfile'
+sudo dphys-swapfile setup
+```
 Build and run wpantund and otbr-agent/web as mentioned in the OT guide:
 ```
 cd borderrouter
