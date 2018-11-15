@@ -75,7 +75,7 @@ If you need more information about iptables, network routing in Linux I recommen
 * [QEMU kernel building](https://web.archive.org/web/20131210001638/http://xecdesign.com/compiling-a-kernel/) - Web archive with the original instructions.
 
 ### Raspbian image preparation
-Download the raspbian image from your taste, I personally use the lite version and use qemu-image to add some necessary space.
+Download the raspbian image of your taste, I personally use the lite version. Then use qemu-image to add some necessary space.
 ```
 sudo qemu-img resize 2018-10-09-raspbian-stretch-lite.img +10G
 ```
@@ -93,10 +93,10 @@ IPV6_THREAD_MESHPREFIX=2001:dead:beef:cafe
 IPV4_NETWORK=192.168.40
 INET_INTERFACE=wlp2s0
 
-
 # USB DETAILS
 USB_VENDORID=0x0403
 USB_PRODUCTID=0x6001
+
 ```
 Run the script:
 ```
@@ -273,11 +273,11 @@ PING 2001:dead:beef:cafe:9a0d:50:91ad:230(2001:dead:beef:cafe:9a0d:50:91ad:230) 
 64 bytes from 2001:dead:beef:cafe:9a0d:50:91ad:230: icmp_seq=4 ttl=63 time=101 ms
 ```
 ## Some troubleshooting
-The script is configured to provide the virtual Raspbian with the fixed IP :11 via dnsmasq using the prefix  you provide in the variables. This same IP is configured as route via to reach the Thread network. If you have problems reaching the Thread network from your Host computer try the below in the virtual Raspbian:
+The script is configured to provide the virtual Raspbian with the fixed IP you provide in the variables via dnsmasq. This same IP is configured as route via to reach the Thread network. If you have problems reaching the Thread network from your Host computer try the below in the virtual Raspbian:
 ```
 # Remove the IPv6 from the ethernet interface
 sudo ip -6 addr flush dev eth0
-# Request again an IP (This hopefully will give the :11 IP to your Raspbian eth0 interface)
+# Request again an IP (This hopefully will give the IP you provided to your Raspbian eth0 interface)
 sudo dhcpcd eth0
 ```
 Then check if you can reach now the Thread network.
