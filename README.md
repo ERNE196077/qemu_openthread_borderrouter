@@ -128,6 +128,11 @@ Once Raspbian is shutdown it will close the script. Even if you type sudo reboot
 ```
 sudo resize2fs /dev/sda2
 ```
+Make sure the following rules are uncommented and set to 1 in the file /etc/sysctl.conf
+```
+net.ipv4.ip_forward
+net.ipv6.conf.all.forwarding
+```
 Finally test the networking and update the OS (dnsmasq DHCP negotiation should do the routing job to reach internet):
 ```
 sudo dhcpcd eth0
@@ -249,7 +254,7 @@ fe80:0:0:0:945d:51a1:5201:40f4
 fdde:ad00:beef:0:4bf4:d389:a832:8f78
 Done
 ```
-Add now a route to let the OT devices now what other networks are behind the Border Router:
+Add now a route to let the OT devices know what other networks are behind the Border Router:
 ```
 sudo wpanctl -I wpan0 add-route 2001:db8:dead:beef::
 ```
@@ -267,4 +272,12 @@ PING 2001:dead:beef:cafe:9a0d:50:91ad:230(2001:dead:beef:cafe:9a0d:50:91ad:230) 
 64 bytes from 2001:dead:beef:cafe:9a0d:50:91ad:230: icmp_seq=3 ttl=63 time=94.10 ms
 64 bytes from 2001:dead:beef:cafe:9a0d:50:91ad:230: icmp_seq=4 ttl=63 time=101 ms
 ```
-
+## Some troubleshooting
+The script is configured to provide the virtual Raspbian with the fixed IP :11 via dnsmasq using the prefix  you provide in the variables. This same IP is configured as route via to reach the Thread network. If you have problems reaching the Thread network from your Host computer try the below in the virtual Raspbian:
+```
+# Remove the IPv6 from the ethernet interface
+sudo ip -6 addr flush dev eth0
+# Request again an IP (This hopefully will give the :11 IP to your Raspbian eth0 interface)
+sudo dhcpcd eth0
+```
+Then check if you can reach now the Thread network.
