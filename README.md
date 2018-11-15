@@ -11,6 +11,7 @@ In the steps below I will be using the .config file from this repo, In addition 
 * USB Serial Support (For the very popular FT232 transceivers, tweak this option in case you use some other) .
 * VirtIO drivers
 * iptables (netfilter)
+
 Adjust the below commands to the OS you are using. In this case I'm using Arch Linux with trizen as AUR package manager.
 Install some dependencies:
 ```
