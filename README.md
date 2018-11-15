@@ -5,6 +5,7 @@ Kernel image and instructions to deploy a virtual borderrouter test environment.
 In case you want it you can build your own kernel and tweak it to add support to more devices/functions. I always prefer to build it by my own as:
 * Contain the latest changes.
 * Is compatible with the last raspbian image available.
+
 In the steps below I will be using the .config file from this repo, In addition to the versatile-pb configuration it contains the below modules built-in:
 * IPv6.
 * USB Serial Support (For the very popular FT232 transceivers, tweak this option in case you use some other) .
