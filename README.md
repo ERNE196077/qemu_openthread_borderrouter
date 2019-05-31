@@ -1,37 +1,39 @@
 # qemu_openthread_borderrouter
 Kernel image and instructions to deploy a virtual borderrouter test environment.
-
+## Requirements
+Install the needed dependencies
+### ArchLinux
+GNU EABI compiler will probably need few other dependencies, install accordingly:
+```
+sudo pacman -S base-devel qemu qemu-arch-extra
+trizen -S aqemu
+trizen -S arm-linux-gnueabihf-gcc
+trizen -S ncurses5-compat-libs
+```
+### Ubuntu
+```
+sudo apt-get install bison flex build-essential qemu-system-arm gcc-arm-linux-gnueabihf
+```
 ## Kernel Build Instructions
 In case you want it you can build your own kernel and tweak it to add support to more devices/functions. I always prefer to build it by my own as:
+
 * Contain the latest changes.
 * Is compatible with the last raspbian image available.
 
 In the steps below I will be using the .config file from this repo, In addition to the versatile-pb configuration it contains the below modules built-in:
+
 * IPv6.
 * USB Serial Support (For the very popular FT232 transceivers, tweak this option in case you use some other) .
 * VirtIO drivers
 * iptables (netfilter)
 
-Adjust the below commands to the OS you are using. In this case I'm using Arch Linux with trizen as AUR package manager.
-Install some dependencies:
-```
-sudo pacman -Syy
-trizen -S ncurses5-compat-libs
-```
-I installed these AUR packages but I'm almost sure that arm-linux-gnueabihf-gcc should be enough:
-```
-trizen -S arm-linux-gnueabihf-binutils
-trizen -S arm-linux-gnueabihf-gcc
-trizen -S arm-linux-gnueabihf-glibc
-trizen -S arm-linux-gnueabihf-linux-api-headers
-```
 Clone the Raspberry kernel tree:
 ```
 git clone git://github.com/raspberrypi/linux.git
 cd linux/
 ```
-For the next step I used the linux-arm-4.14.50.patch from dhruvvyas90, due changes in the files from the kernel tree the patch failed to be applied in my case so I opened the files and did the changes manually (Just 3 files...). 
-Please refer to the patch file to apply the changes. It just be needed to be done just once. [linux-arm-4.14.50.patch](https://github.com/dhruvvyas90/qemu-rpi-kernel/blob/master/tools/linux-arm-4.14.50.patch).
+For the next step I used the linux-arm.patch (As of May 2019) from dhruvvyas90, due changes in the files from the kernel tree the patch failed to be applied in my case so I opened the files and did the changes manually (Just 3 files...). 
+Please refer to the patch file to apply the changes. It just be needed to be done just once. [Linux tools from dhruvvyas90](https://github.com/dhruvvyas90/qemu-rpi-kernel/blob/master/tools).
 Don't forget to thanks dhruvvyas90 for his help.
 ```
 nano arch/arm/Kconfig
@@ -42,42 +44,46 @@ Prepare the initial configuration for versatile:
 ```
 make ARCH=arm versatile_defconfig 
 ```
-In case you want to use the same .config file I used copy it into your location:
+In case you want to use the same .config file I used copy it into your location (The .config file I provided has all the IPv6, USB, etc stuff needed by OpenThread to work, modify for your own needs):
 ```
 cp ../.config .
 ```
 Start menuconfig and modify the kernel options to your taste, remember to save the .config file:
 ```
-make -j 4 -k ARCH=arm menuconfig
+make -j 4 -k ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
 ```
 Compile the kernel and generate the device tree files:
 ```
-make -j 4 ARCH=arm -k bzImage dtbs
+make -j 4 -k ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage dtbs
 ```
-Once done copy the kernel and versatile-pb.dtb files where the runborderrouter.sh script resides. (In case you want to use it).
+Once done copy the kernel and versatile-pb.dtb files where the runOTBR.sh script resides. (In case you want to use it).
 ```
 cp arch/arm/boot/zImage ../
 cp arch/arm/boot/dts/versatile-pb.dtb ../
 ```
+
 ## Border Router Setup
 To get a working test environment with a Raspbian we need some setup in the host computer:
+
 * Bridge configuration to permit the virtual Raspbian reach the internet
 * iptables rules to allow the traffic
 * An IPv6 and IPv4 free network segments to deploy the virtual Raspbian networking.
 
-The steps below will use the runborderrouter.sh script which takes care of the 2 first points above. You will need to choose a network segment for IPv4 and 2 for IPv6 and set it in the variables of the script. In my case I used: 
+The steps below will use the runOTBR.sh script which takes care of the 2 first points above. You will need to choose a network segment for IPv4 and 2 for IPv6 and set it in the variables of the script. In my case I used: 
+
 * 2001:dead:beef:cafe::/64    -    Additional Local Mesh for the Thread network 
 * 2001:db8:dead:beef:fe::/96    -    IPv6 network between the virtual BR and your computer.
 * 192.168.40.0/24    -    IPv4 network for Internet access.
 
-If you need more information about iptables, network routing in Linux I recommend you to read the below topics which I used while writting the runborderrouter.sh script. 
+If you need more information about iptables, network routing in Linux I recommend you to read the below topics which I used while writting the runOTBR.sh script.
+
 * [bridge configuration](https://wiki.archlinux.org/index.php/Network_bridge) - ArchLinux network bridge Wiki.
 * [port forwarding](https://aboullaite.me/kvm-qemo-forward-ports-with-iptables/) - iptables configuration for bridged connections (Thanks Mohammed)
 * [QEMU tap interface](https://backreference.org/2010/03/26/tuntap-interface-tutorial/) - TUN/TAP interface creation.
 * [QEMU kernel building](https://web.archive.org/web/20131210001638/http://xecdesign.com/compiling-a-kernel/) - Web archive with the original instructions.
 
 ### Raspbian image preparation
-Download the raspbian image of your taste, I personally use the lite version. Then use qemu-image to add some necessary space.
+Download the raspbian image of your taste, my personal preference is the lite version. Then use qemu-image to add some necessary space.
 ```
 sudo qemu-img resize 2018-10-09-raspbian-stretch-lite.img +10G
 ```
@@ -141,13 +147,16 @@ sudo dhcpcd eth0
 ping www.google.com
 sudo apt-get update
 ```
-You should have a working Raspbian ready to install OpenThread Border Router.
-
+You should have a working Raspbian ready to install OpenThread Border Router. Additionally upgrade and install git.
+```
+sudo apt-get upgrade
+sudo apt-get install git
+```
 ### Install OpenThread Border Router
 Clone the OTBR git in a local folder
 ```
-git clone https://github.com/openthread/borderrouter.git
-cd borderrouter
+git clone https://github.com/openthread/ot-br-posix.git
+cd ot-br-posix
 ```
 In this case we will avoid the installation of NAT64, DNS64 and the AP (Due the fact that this Raspbian is lack of wifi interface (wlan0). Set the below variables to 0 from the file examples/platforms/raspbian/default.
 ```
@@ -163,12 +172,12 @@ sudo dphys-swapfile setup
 ```
 Build and run wpantund and otbr-agent/web as mentioned in the OT guide:
 ```
-cd borderrouter
+cd ot-br-posix
 ./script/bootstrap
 ./script/setup
 ```
+Sit back and relax. The proces will take quite long time.
 After finishing the OT Border Router Build and Configuration guide you should have a working OpenThread networking we just need something else...
-
 ### Connectivity from host to OT devices 
 Using the guest Raspbian with the NCP connected, form a Thread network and add your devices. In this case I'm using a custom board with a cc2538... chip that at this time has problems with commissioning (11/2018) but I made it to get a formed network of some devices just for testing purposes.
 
@@ -275,6 +284,7 @@ PING 2001:dead:beef:cafe:9a0d:50:91ad:230(2001:dead:beef:cafe:9a0d:50:91ad:230) 
 64 bytes from 2001:dead:beef:cafe:9a0d:50:91ad:230: icmp_seq=4 ttl=63 time=101 ms
 ```
 ## Some troubleshooting
+### Refresh IP
 The script is configured to provide the virtual Raspbian with the fixed IP you provide in the variables via dnsmasq. This same IP is configured as route via to reach the Thread network. If you have problems reaching the Thread network from your Host computer try the below in the virtual Raspbian:
 ```
 # Remove the IPv6 from the ethernet interface
@@ -283,3 +293,9 @@ sudo ip -6 addr flush dev eth0
 sudo dhcpcd eth0
 ```
 Then check if you can reach now the Thread network.
+### Docker
+If you are using Docker, you will probably have problems connecting the virtual raspbian to the network. This is due the fact hat Docker set several iptables rules for the containers. It is possible to 
+### Memory constraints
+If you run into problems while running the **bootstrap** or **setup** scripts and the error message stands for out of memory, reboot the virtual machine and retry the script. This is due the fact that the swap configured (512M) is not enough to handle the compilation process (As of May 2019, the build process works ok without hitting this issue).
+## Final thought
+Despite is funny to have a virtual Raspbian with wpantund and OTBR recent achievements are being made with Docker [OTBR Docker](https://openthread.io/guides/border-router/docker/run). Please check that solution and use the one of your taste.
