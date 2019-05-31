@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# YOUR LINUX USER NAME
+USER_NAME=myusername
+
 # QEMU VARIABLES
 RASPBIAN_IMAGE_FILE=2018-10-09-raspbian-stretch-lite.img
 VERSATILEPB_FILE=versatile-pb.dtb
@@ -35,7 +38,7 @@ sudo sysctl net.ipv4.ip_forward=1
 sudo sysctl net.ipv6.conf.default.forwarding=1
 sudo sysctl net.ipv6.conf.all.forwarding=1
 
-sudo ip tuntap add dev vnet0 mode tap user ernestrc
+sudo ip tuntap add dev vnet0 mode tap user $USER_NAME
 sudo ip link add name virbr0 type bridge
 sudo ip link set virbr0 up
 sudo ip link set vnet0 up promisc on
@@ -63,8 +66,7 @@ sudo qemu-system-arm -kernel ${KERNEL_FILE} \
 		
 
 sudo systemctl stop dnsmasq.service
-sudo iptables -F -t nat
-sudo ip6tables -F -t nat
+sudo iptables -t nat -D POSTROUTING -o ${INET_INTERFACE} -j MASQUERADE
 
 sudo ip addr flush dev virbr0
 sudo ip -6 addr flush dev virbr0

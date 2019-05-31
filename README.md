@@ -89,6 +89,9 @@ sudo qemu-img resize 2018-10-09-raspbian-stretch-lite.img +10G
 ```
 Modify the script variables to match your kernel files, network details and USB OpenThread NCP device:
 ```  
+# YOUR LINUX USER NAME
+USER_NAME=myusername
+
 # QEMU VARIABLES
 RASPBIAN_IMAGE_FILE=2018-10-09-raspbian-stretch-lite.img
 VERSATILEPB_FILE=versatile-pb.dtb
@@ -101,8 +104,8 @@ IPV6_THREAD_MESHPREFIX=2001:dead:beef:cafe
 IPV4_NETWORK=192.168.40
 INET_INTERFACE=wlp2s0
 
-# USB DETAILS
-USB_VENDORID=0x0403
+# USB DETAILS - In this case is 
+USB_VENDORID=0x0403   
 USB_PRODUCTID=0x6001
 
 ```
